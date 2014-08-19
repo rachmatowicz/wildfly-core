@@ -65,6 +65,7 @@ public class AbstractAddStepHandler implements OperationStepHandler {
     public void execute(final OperationContext context, final ModelNode operation) throws OperationFailedException {
         final Resource resource = createResource(context);
         populateModel(context, operation, resource);
+        recordCapabilitiesAndRequirements(context, operation, resource);
         final ModelNode model = resource.getModel();
 
         if (requiresRuntime(context)) {
@@ -142,6 +143,27 @@ public class AbstractAddStepHandler implements OperationStepHandler {
                 attr.validateAndSet(operation, model);
             }
         }
+    }
+
+    /**
+     * Record any new {@link org.jboss.as.controller.capability.RuntimeCapability capabilities} that are available as
+     * a result of this operation, as well as any requirements for other capabilities that now exist. This method is
+     * invoked during {@link org.jboss.as.controller.OperationContext.Stage#MODEL}.
+     * <p>
+     * Any changes made by this method will automatically be discarded if the operation rolls back.
+     * </p>
+     * <p>
+     * This default implementation does nothing.
+     * </p>
+     *
+     * @param context the context. Will not be {@code null}
+     * @param operation the operation that is executing Will not be {@code null}
+     * @param resource the resource that has been added. Will reflect any updates made by
+     * {@link #populateModel(OperationContext, org.jboss.dmr.ModelNode, org.jboss.as.controller.registry.Resource)}. Will
+     *                 not be {@code null}
+     */
+    protected void recordCapabilitiesAndRequirements(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+        // no-op
     }
 
     /**

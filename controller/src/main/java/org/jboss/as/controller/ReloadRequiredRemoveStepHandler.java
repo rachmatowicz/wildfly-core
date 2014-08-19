@@ -22,6 +22,7 @@
 
 package org.jboss.as.controller;
 
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 
 /**
@@ -33,7 +34,40 @@ public class ReloadRequiredRemoveStepHandler extends AbstractRemoveStepHandler {
 
     public static final ReloadRequiredRemoveStepHandler INSTANCE = new ReloadRequiredRemoveStepHandler();
 
+    private final String[] unavailableCapabilities;
+
+    /**
+     * Creates a new {@code ReloadRequiredRemoveStepHandler} that will
+     * {@link #recordCapabilitiesAndRequirements(OperationContext, org.jboss.dmr.ModelNode, org.jboss.as.controller.registry.Resource) deregister}
+     * a list of capabilities as part of execution.
+     *
+     * @param unavailableCapabilities capabilities to deregister
+     */
+    public ReloadRequiredRemoveStepHandler(String... unavailableCapabilities) {
+        this.unavailableCapabilities = unavailableCapabilities;
+    }
+
+    /**
+     * Creates a new {@code ReloadRequiredRemoveStepHandler}
+     */
     public ReloadRequiredRemoveStepHandler() {
+        this.unavailableCapabilities = null;
+    }
+
+    /**
+     * {@link org.jboss.as.controller.OperationContext#deregisterCapability(String) Deregisters} any capabilities
+     * whose names were passed to {@link #ReloadRequiredRemoveStepHandler(String...) the constructor}.
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    protected void recordCapabilitiesAndRequirements(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+        super.recordCapabilitiesAndRequirements(context, operation, resource);
+        if (unavailableCapabilities != null) {
+            for (String unavailable : unavailableCapabilities) {
+                context.deregisterCapability(unavailable);
+            }
+        }
     }
 
     @Override

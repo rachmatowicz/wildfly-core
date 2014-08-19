@@ -41,7 +41,10 @@ public abstract class AbstractRemoveStepHandler implements OperationStepHandler 
 
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
 
-        final ModelNode model = Resource.Tools.readModel(context.readResource(PathAddress.EMPTY_ADDRESS));
+        Resource resource = context.readResource(PathAddress.EMPTY_ADDRESS);
+        final ModelNode model = Resource.Tools.readModel(resource);
+
+        recordCapabilitiesAndRequirements(context, operation, resource);
 
         performRemove(context, operation, model);
 
@@ -76,6 +79,27 @@ public abstract class AbstractRemoveStepHandler implements OperationStepHandler 
             List<PathElement> children = getChildren(resource);
             throw ControllerLogger.ROOT_LOGGER.cannotRemoveResourceWithChildren(children);
         }
+    }
+
+    /**
+     * Record any new {@link org.jboss.as.controller.capability.RuntimeCapability capabilities} that are no longer available as
+     * a result of this operation, as well as any requirements for other capabilities that no longer exist. This method is
+     * invoked during {@link org.jboss.as.controller.OperationContext.Stage#MODEL}.
+     * <p>
+     * Any changes made by this method will automatically be discarded if the operation rolls back.
+     * </p>
+     * <p>
+     * This default implementation does nothing.
+     * </p>
+     *
+     * @param context the context. Will not be {@code null}
+     * @param operation the operation that is executing Will not be {@code null}
+     * @param resource the resource that has been added. Will <strong>not</strong> reflect any updates made by
+     * {@link #performRemove(OperationContext, org.jboss.dmr.ModelNode, org.jboss.dmr.ModelNode)} as this method
+     *                 is invoked before that method is. Will not be {@code null}
+     */
+    protected void recordCapabilitiesAndRequirements(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+        // no-op
     }
 
     protected boolean requireNoChildResources() {
