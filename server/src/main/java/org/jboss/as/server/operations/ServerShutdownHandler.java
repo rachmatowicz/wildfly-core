@@ -59,7 +59,7 @@ public class ServerShutdownHandler implements OperationStepHandler {
             .setAllowNull(true)
             .build();
     protected static final SimpleAttributeDefinition TIMEOUT = new SimpleAttributeDefinitionBuilder(ModelDescriptionConstants.TIMEOUT, ModelType.INT)
-            .setDefaultValue(new ModelNode(0))
+            .setDefaultValue(new ModelNode(5))
             .setAllowNull(true)
             .build();
 
@@ -109,24 +109,27 @@ public class ServerShutdownHandler implements OperationStepHandler {
                             OperationListener listener = new OperationListener() {
                                 @Override
                                 public void suspendStarted() {
-
+                                    System.out.println("SUSPEND CONTROLLER: suspend started");
                                 }
 
                                 @Override
                                 public void complete() {
                                     suspendController.removeListener(this);
+                                    System.out.println("SUSPEND CONTROLLER: suspend complete - calling shutdown.shutdown()");
                                     shutdown.shutdown();
                                 }
 
                                 @Override
                                 public void cancelled() {
                                     suspendController.removeListener(this);
+                                    System.out.println("SUSPEND CONTROLLER: suspend cancelled - calling shutdown.cancel()");
                                     shutdown.cancel();
                                 }
 
                                 @Override
                                 public void timeout() {
                                     suspendController.removeListener(this);
+                                    System.out.println("SUSPEND CONTROLLER: suspend timeout - calling shutdown.shutdown()");
                                     shutdown.shutdown();
                                 }
                             };
